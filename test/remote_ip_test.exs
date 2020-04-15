@@ -36,6 +36,19 @@ defmodule RemoteIpTest do
     assert :peer == @conn |> remote_ip(headers: ~w[custom], proxies: ~w[0.0.0.0/0 ::/0])
   end
 
+  describe "remote_ip_found flag" do
+    test "found" do
+      conn = @conn |> x_forwarded_for("1.2.3.4") |> RemoteIp.call(RemoteIp.init([]))
+      assert conn.remote_ip == {1, 2, 3, 4}
+      assert conn.assigns[:remote_ip_found] == true
+    end
+
+    test "not found" do
+      conn = @conn |> RemoteIp.call(RemoteIp.init([]))
+      assert conn.assigns[:remote_ip_found] == false
+    end
+  end
+
   describe "one hop" do
     test "from an unknown IP" do
       assert :peer == @conn |> forwarded("for=unknown") |> remote_ip
