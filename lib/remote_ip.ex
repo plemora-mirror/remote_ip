@@ -75,8 +75,13 @@ defmodule RemoteIp do
 
   def call(conn, {headers, proxies}) do
     case last_forwarded_ip(conn, headers, proxies) do
-      nil -> conn
-      ip -> %{conn | remote_ip: ip}
+      nil ->
+        Plug.Conn.assign(conn, :remote_ip_found, false)
+
+      ip ->
+        conn
+        |> Map.put(:remote_ip, ip)
+        |> Plug.Conn.assign(:remote_ip_found, true)
     end
   end
 
